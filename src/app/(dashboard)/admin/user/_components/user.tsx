@@ -55,6 +55,7 @@ export default function UserManagement() {
         user.id,
         user.name,
         user.role,
+        user.email,
         <DropdownAction
           menu={[
             {

@@ -3,6 +3,7 @@ create table public.profiles (
   id uuid not null references auth.users on delete cascade,
   name text,
   role text,
+  email text,
   avatar_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
@@ -19,8 +20,8 @@ language plpgsql
 security definer set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, name, role, avatar_url)
-  values (new.id, new.raw_user_meta_data ->> 'name', new.raw_user_meta_data ->> 'role', new.raw_user_meta_data ->> 'avatar_url');
+  insert into public.profiles (id, name, role, email, avatar_url)
+  values (new.id, new.raw_user_meta_data ->> 'name', new.raw_user_meta_data ->> 'role', new.raw_user_meta_data ->> 'email', new.raw_user_meta_data ->> 'avatar_url');
   return new;
 end;
 $$;
