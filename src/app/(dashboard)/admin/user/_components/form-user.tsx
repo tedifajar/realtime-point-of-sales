@@ -62,19 +62,19 @@ export default function FormUser<T extends FieldValues>({
             />
           )}
 
-          <FormSelect
-            form={form}
-            name={"role" as Path<T>}
-            label="Role"
-            selectItem={ROLE_LIST}
-          />
-
           <FormImage
             form={form}
             name={"avatar_url" as Path<T>}
             label="Avatar"
             preview={preview}
             setPreview={setPreview}
+          />
+
+          <FormSelect
+            form={form}
+            name={"role" as Path<T>}
+            label="Role"
+            selectItem={ROLE_LIST}
           />
 
           {type === "Create" && (
