@@ -52,15 +52,13 @@ export default function FormUser<T extends FieldValues>({
             placeholder="Insert Your Name"
           />
 
-          {type === "Create" && (
-            <FormInput
-              type="email"
-              form={form}
-              name={"email" as Path<T>}
-              label="Email"
-              placeholder="Insert your email here"
-            />
-          )}
+          <FormInput
+            type="email"
+            form={form}
+            name={"email" as Path<T>}
+            label="Email"
+            placeholder="Insert your email here"
+          />
 
           <FormImage
             form={form}

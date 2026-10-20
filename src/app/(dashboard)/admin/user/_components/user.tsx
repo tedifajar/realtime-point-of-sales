@@ -9,12 +9,14 @@ import { HEADER_TABLE_USER } from "@/constants/user-constant";
 import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Divide, Pencil, Trash2 } from "lucide-react";
+import { FileImage, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import DialogCreateUser from "./dialog-create-user";
 import { Profile } from "@/types/auth";
 import DialogUpdateUser from "./dialog-update-user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import DialogDeleteUser from "./dialog-delete-user";
 
 export default function UserManagement() {
   const supabase = createClient();
@@ -62,8 +64,18 @@ export default function UserManagement() {
   const filteredData = useMemo(() => {
     return (users?.data || []).map((user, index) => {
       return [
-        index + 1,
+        currentLimit * (currentPage - 1) + index + 1,
         user.id,
+        <Avatar className="h-9 w-9 rounded-lg">
+          <AvatarImage
+            src={user.avatar_url}
+            alt="preview"
+            className="object-cover"
+          />
+          <AvatarFallback className="rounded-lg">
+            <FileImage className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>,
         user.name,
         user.role,
         user.email,
@@ -91,7 +103,12 @@ export default function UserManagement() {
                 </span>
               ),
               variant: "destructive",
-              action: () => {},
+              action: () => {
+                setSelectedAction({
+                  data: user,
+                  type: "delete",
+                });
+              },
             },
           ]}
         />,
@@ -134,6 +151,12 @@ export default function UserManagement() {
       />
       <DialogUpdateUser
         open={selectedAction !== null && selectedAction.type === "update"}
+        refetch={refetch}
+        currentData={selectedAction?.data}
+        handleChangeAction={handleChangeAction}
+      />
+      <DialogDeleteUser
+        open={selectedAction !== null && selectedAction.type === "delete"}
         refetch={refetch}
         currentData={selectedAction?.data}
         handleChangeAction={handleChangeAction}
