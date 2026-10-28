@@ -12,9 +12,10 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { HEADER_TABLE_TABLE } from "@/constants/table-constant";
 import { Table } from "@/validations/table-validation";
+import { HEADER_TABLE_TABLE } from "@/constants/table-constant";
 import { HEADER_TABLE_ORDER } from "@/constants/order-constant";
+import DialogCreateOrder from "./dialog-create-order";
 
 export default function OrderManagement() {
   const supabase = createClient();
@@ -47,18 +48,31 @@ export default function OrderManagement() {
 
       if (currentSearch) {
         query.or(
-          `order_id.ilike.%${currentSearch}%,customer_name.ilike.%${currentSearch}%,status.ilike.%${currentSearch}%`,
+          `order_id.ilike.%${currentSearch}%,customer_name.ilike.%${currentSearch}%`,
         );
       }
 
       const result = await query;
 
       if (result.error)
-        toast.error("Get Order Data Failed", {
-          description: result.error?.message,
+        toast.error("Get Order data failed", {
+          description: result.error.message,
         });
 
       return result;
+    },
+  });
+
+  const { data: tables, refetch: refetchTables } = useQuery({
+    queryKey: ["tables"],
+    queryFn: async () => {
+      const result = await supabase
+        .from("tables")
+        .select("*")
+        .order("created_at")
+        .order("status");
+
+      return result.data;
     },
   });
 
@@ -88,7 +102,6 @@ export default function OrderManagement() {
         >
           {order.status}
         </div>,
-
         <DropdownAction menu={[]} />,
       ];
     });
@@ -113,7 +126,7 @@ export default function OrderManagement() {
             <DialogTrigger asChild>
               <Button variant="outline">Create</Button>
             </DialogTrigger>
-            {/* <DialogCreateTable refetch={refetch} /> */}
+            <DialogCreateOrder tables={tables} refetch={refetch} />
           </Dialog>
         </div>
       </div>
@@ -127,18 +140,6 @@ export default function OrderManagement() {
         onChangePage={handleChangePage}
         onChangeLimit={handleChangeLimit}
       />
-      {/* <DialogUpdateTable
-        open={selectedAction !== null && selectedAction.type === "update"}
-        refetch={refetch}
-        currentData={selectedAction?.data}
-        handleChangeAction={handleChangeAction}
-      /> */}
-      {/* <DialogDeleteTable
-        open={selectedAction !== null && selectedAction.type === "delete"}
-        refetch={refetch}
-        currentData={selectedAction?.data}
-        handleChangeAction={handleChangeAction}
-      /> */}
     </div>
   );
 }
