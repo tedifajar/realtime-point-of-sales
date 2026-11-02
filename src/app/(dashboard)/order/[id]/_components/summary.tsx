@@ -1,10 +1,13 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { usePricing } from "@/hooks/use-pricing";
 import { convertIDR } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
 import { Menu } from "@/validations/menu-validation";
+import { useMemo } from "react";
 
 export default function Summary({
   order,
@@ -23,6 +26,10 @@ export default function Summary({
   id: string;
 }) {
   const { grandTotal, totalPrice, tax, service } = usePricing(orderMenu);
+  const profile = useAuthStore((state) => state.profile);
+  const isAllServed = useMemo(() => {
+    return orderMenu?.every((item) => item.status === "served");
+  }, [orderMenu]);
   return (
     <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
@@ -62,6 +69,15 @@ export default function Summary({
             <p className="text-lg font-semibold">Total</p>
             <p className="text-lg font-semibold">{convertIDR(grandTotal)}</p>
           </div>
+          {order?.status === "process" && profile.role !== "kitchen" && (
+            <Button
+              type="submit"
+              // disabled={!isAllServed}
+              className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
+            >
+              Pay
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
