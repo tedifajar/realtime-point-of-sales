@@ -7,7 +7,11 @@ import { usePricing } from "@/hooks/use-pricing";
 import { convertIDR } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { Menu } from "@/validations/menu-validation";
-import { useMemo } from "react";
+import { startTransition, useActionState, useEffect, useMemo } from "react";
+import { generatePayment } from "../../actions";
+import { INITIAL_STATE_GENERATE_PAYMENT } from "@/constants/order-constant";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function Summary({
   order,
@@ -30,6 +34,35 @@ export default function Summary({
   const isAllServed = useMemo(() => {
     return orderMenu?.every((item) => item.status === "served");
   }, [orderMenu]);
+
+  const [
+    generatePaymentState,
+    generatePaymentAction,
+    isPendingGeneratePayment,
+  ] = useActionState(generatePayment, INITIAL_STATE_GENERATE_PAYMENT);
+
+  const handleGeneratePayment = () => {
+    const formData = new FormData();
+    formData.append("id", id || "");
+    formData.append("gross_amount", grandTotal.toString());
+    formData.append("customer_name", order?.customer_name || "");
+    startTransition(() => {
+      generatePaymentAction(formData);
+    });
+  };
+
+  useEffect(() => {
+    if (generatePaymentState?.status === "error") {
+      toast.error("Generate Payment Failed", {
+        description: generatePaymentState.errors?._form?.[0],
+      });
+    }
+
+    if (generatePaymentState?.status === "success") {
+      window.snap.pay(generatePaymentState.data.payment_token);
+    }
+  }, [generatePaymentState]);
+
   return (
     <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
@@ -72,10 +105,15 @@ export default function Summary({
           {order?.status === "process" && profile.role !== "kitchen" && (
             <Button
               type="submit"
-              // disabled={!isAllServed}
+              onClick={handleGeneratePayment}
+              disabled={!isAllServed || isPendingGeneratePayment}
               className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
             >
-              Pay
+              {isPendingGeneratePayment ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Pay"
+              )}
             </Button>
           )}
         </div>
