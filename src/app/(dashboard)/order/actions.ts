@@ -131,8 +131,8 @@ export async function addOrderItem(
     return {
       status: "error",
       errors: {
-        ...prevState,
-        _form: [],
+        ...prevState.errors,
+        _form: [error.message],
       },
     };
   }
