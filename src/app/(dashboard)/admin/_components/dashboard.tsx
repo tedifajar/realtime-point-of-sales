@@ -12,14 +12,25 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { convertIDR } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { groupEnd } from "console";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useState } from "react";
 
 export default function Dashboard() {
   const supabase = createClient();
+
+  const [formattedDates, setFormattedDates] = useState({ start: "", end: "" });
+
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 6);
   lastWeek.setHours(0, 0, 0, 0);
+
+  useEffect(() => {
+    setFormattedDates({
+      start: lastWeek.toLocaleDateString(),
+      end: new Date().toLocaleDateString(),
+    });
+  }, []);
 
   const { data: orders } = useQuery({
     queryKey: ["orders-per-day"],
@@ -55,12 +66,12 @@ export default function Dashboard() {
     queryFn: async () => {
       const { data: dataThisMonth } = await supabase
         .from("orders_menus")
-        .select("quantity, menus(price), created_at")
+        .select("quantity, menus (price), created_at")
         .gte("created_at", thisMonth);
 
       const { data: dataLastMonth } = await supabase
         .from("orders_menus")
-        .select("quantity, menus(price), created_at")
+        .select("quantity, menus (price), created_at")
         .gte("created_at", lastMonth)
         .lt("created_at", thisMonth);
 
@@ -144,7 +155,11 @@ export default function Dashboard() {
               {convertIDR(revenue?.totalRevenueThisMonth ?? 0)}
             </CardTitle>
           </CardHeader>
-          <CardFooter>*Revenue this month</CardFooter>
+          <CardFooter>
+            <div className="text-muted-foreground text-sm">
+              *Revenue this month
+            </div>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>
@@ -153,7 +168,11 @@ export default function Dashboard() {
               {convertIDR(revenue?.averageRevenueThisMonth ?? 0)}
             </CardTitle>
           </CardHeader>
-          <CardFooter>*Average per day</CardFooter>
+          <CardFooter>
+            <div className="text-muted-foreground text-sm">
+              *Average per day
+            </div>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>
@@ -162,7 +181,11 @@ export default function Dashboard() {
               {totalOrder ?? 0}
             </CardTitle>
           </CardHeader>
-          <CardFooter>*Order settled this month</CardFooter>
+          <CardFooter>
+            <div className="text-muted-foreground text-sm">
+              *Order settled this month
+            </div>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>
@@ -171,7 +194,11 @@ export default function Dashboard() {
               {revenue?.growthRate ?? 0}%
             </CardTitle>
           </CardHeader>
-          <CardFooter>*Compared to last month</CardFooter>
+          <CardFooter>
+            <div className="text-muted-foreground text-sm">
+              *Compared to last month
+            </div>
+          </CardFooter>
         </Card>
       </div>
       <div className="flex flex-col lg:flex-row gap-4">
@@ -179,8 +206,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Order Create Per Week</CardTitle>
             <CardDescription>
-              Showing orders from {lastWeek.toLocaleDateString()} to{" "}
-              {new Date().toLocaleDateString()}
+              Showing orders from {formattedDates.start} to {formattedDates.end}
             </CardDescription>
           </CardHeader>
           <div className="w-full h-64 p-6">
@@ -196,20 +222,21 @@ export default function Dashboard() {
             {lastOrder ? (
               lastOrder.map((order) => (
                 <div
-                  key={order.id}
+                  key={order?.id}
                   className="flex items-center gap-4 justify-between mb-4"
                 >
                   <div>
-                    <h3 className="font-semibold">{order.customer_name}</h3>
+                    <h3 className="font-semibold">{order?.customer_name}</h3>
                     <p className="text-sm text-muted-foreground">
                       Table:{" "}
-                      {(order.tables as unknown as { name: string }).name}
+                      {(order?.tables as unknown as { name: string })?.name ||
+                        "Takeaway"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Order ID: {order.id}
+                      Order ID: {order?.id}
                     </p>
                   </div>
-                  <Link href={`order/${order.order_id}`}>
+                  <Link href={`/order/${order?.order_id}`}>
                     <Button className="mt-2" size="sm">
                       Detail
                     </Button>
@@ -217,7 +244,7 @@ export default function Dashboard() {
                 </div>
               ))
             ) : (
-              <p>No Active Order</p>
+              <p>No active orders</p>
             )}
           </div>
         </Card>

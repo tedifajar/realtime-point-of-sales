@@ -10,7 +10,7 @@ export const HEADER_TABLE_ORDER = [
 ];
 
 export const INITIAL_ORDER = {
-  cusomer_name: "",
+  customer_name: "",
   table_id: "",
   status: "",
 };
@@ -18,9 +18,21 @@ export const INITIAL_ORDER = {
 export const INITIAL_STATE_ORDER = {
   status: "idle",
   errors: {
-    cusomer_name: [],
+    customer_name: [],
     table_id: [],
     status: [],
+    _form: [],
+  },
+};
+
+export const INITIAL_ORDER_TAKEAWAY = {
+  customer_name: "",
+};
+
+export const INITIAL_STATE_ORDER_TAKEAWAY = {
+  status: "idle",
+  errors: {
+    customer_name: [],
     _form: [],
   },
 };

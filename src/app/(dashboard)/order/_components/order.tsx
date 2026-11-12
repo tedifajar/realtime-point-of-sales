@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import useDataTable from "@/hooks/use-data-table";
 import { createClientSupabase } from "@/lib/supabase/default";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, Link2Icon, Pencil, ScrollText, Trash2 } from "lucide-react";
+import { Ban, Link2Icon, Package, ScrollText, Utensils } from "lucide-react";
 import {
   startTransition,
   useActionState,
@@ -18,17 +18,20 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Table } from "@/validations/table-validation";
-import { HEADER_TABLE_TABLE } from "@/constants/table-constant";
-import {
-  HEADER_TABLE_ORDER,
-  INITIAL_STATE_ORDER,
-} from "@/constants/order-constant";
-import DialogCreateOrder from "./dialog-create-order";
+import { HEADER_TABLE_ORDER } from "@/constants/order-constant";
 import { updateReservation } from "../actions";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import DialogCreateOrderDineIn from "./dialog-create-order-dine-in";
+import DialogCreateOrderTakeaway from "./dialog-create-order-takeaway";
 
 export default function OrderManagement() {
   const supabase = createClientSupabase();
@@ -40,7 +43,6 @@ export default function OrderManagement() {
     handleChangeLimit,
     handleChangeSearch,
   } = useDataTable();
-
   const profile = useAuthStore((state) => state.profile);
 
   const {
@@ -113,15 +115,6 @@ export default function OrderManagement() {
     };
   }, []);
 
-  const [selectedAction, setSelectedAction] = useState<{
-    data: Table;
-    type: "update" | "delete";
-  } | null>(null);
-
-  const handleChangeAction = (open: boolean) => {
-    if (!open) setSelectedAction(null);
-  };
-
   const totalPages = useMemo(() => {
     return orders && orders.count !== null
       ? Math.ceil(orders.count / currentLimit)
@@ -161,7 +154,6 @@ export default function OrderManagement() {
     if (reservedState?.status === "success") {
       toast.success("Update Reservation Success");
       refetchOrders();
-      refetchTables();
     }
   }, [reservedState]);
 
@@ -196,7 +188,7 @@ export default function OrderManagement() {
         currentLimit * (currentPage - 1) + index + 1,
         order.order_id,
         order.customer_name,
-        (order.tables as unknown as { name: string }).name,
+        (order.tables as unknown as { name: string })?.name || "Takeaway",
         <div
           className={cn("px-2 py-1 rounded-full text-white w-fit capitalize", {
             "bg-lime-600": order.status === "settled",
@@ -209,13 +201,13 @@ export default function OrderManagement() {
         </div>,
         <DropdownAction
           menu={
-            order.status === "reserved"
+            order.status === "reserved" && profile.role !== "kitchen"
               ? reservedActionList.map((item) => ({
                   label: item.label,
                   action: () =>
                     item.action(
                       order.id,
-                      (order.tables as unknown as { id: string }).id,
+                      (order.tables as unknown as { id: string })?.id,
                     ),
                 }))
               : [
@@ -238,6 +230,8 @@ export default function OrderManagement() {
     });
   }, [orders]);
 
+  const [openCreateOrder, setOpenCreateOrder] = useState(false);
+
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
@@ -248,12 +242,39 @@ export default function OrderManagement() {
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
           {profile.role !== "kitchen" && (
-            <Dialog>
-              <DialogTrigger asChild>
+            <DropdownMenu
+              open={openCreateOrder}
+              onOpenChange={setOpenCreateOrder}
+            >
+              <DropdownMenuTrigger asChild>
                 <Button variant="outline">Create</Button>
-              </DialogTrigger>
-              <DialogCreateOrder tables={tables} />
-            </Dialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel className="font-bold">
+                  Create Order
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Dialog>
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted">
+                    <Utensils className="size-4" />
+                    Dine In
+                  </DialogTrigger>
+                  <DialogCreateOrderDineIn
+                    tables={tables}
+                    closeDialog={() => setOpenCreateOrder(false)}
+                  />
+                </Dialog>
+                <Dialog>
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted">
+                    <Package className="size-4" />
+                    Takeaway
+                  </DialogTrigger>
+                  <DialogCreateOrderTakeaway
+                    closeDialog={() => setOpenCreateOrder(false)}
+                  />
+                </Dialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

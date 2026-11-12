@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { usePricing } from "@/hooks/use-pricing";
 import { convertIDR } from "@/lib/utils";
-import { useAuthStore } from "@/stores/auth-store";
 import { Menu } from "@/validations/menu-validation";
 import { startTransition, useActionState, useEffect, useMemo } from "react";
 import { generatePayment } from "../../actions";
 import { INITIAL_STATE_GENERATE_PAYMENT } from "@/constants/order-constant";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function Summary({
   order,
@@ -62,7 +62,6 @@ export default function Summary({
       window.snap.pay(generatePaymentState.data.payment_token);
     }
   }, [generatePaymentState]);
-
   return (
     <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
@@ -76,7 +75,10 @@ export default function Summary({
             <div className="space-y-2">
               <Label>Table</Label>
               <Input
-                value={(order?.tables as unknown as { name: string })?.name}
+                value={
+                  (order?.tables as unknown as { name: string })?.name ||
+                  "Takeaway"
+                }
                 disabled
               />
             </div>
