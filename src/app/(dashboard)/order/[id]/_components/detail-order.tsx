@@ -85,7 +85,9 @@ export default function DetailOrder({ id }: { id: string }) {
     queryFn: async () => {
       const result = await supabase
         .from("orders_menus")
-        .select("*, menus (id, name, image_url, price)", { count: "exact" })
+        .select("*, menus (id, name, image_url, price, discount)", {
+          count: "exact",
+        })
         .eq("order_id", order?.id)
         .order("status");
 
@@ -150,7 +152,7 @@ export default function DetailOrder({ id }: { id: string }) {
             </span>
           </div>
         </div>,
-        <div>{convertIDR(item.menus.price * item.quantity)}</div>,
+        <div>{convertIDR(item.nominal)}</div>,
         <div
           className={cn("px-2 py-1 rounded-full text-white w-fit capitalize", {
             "bg-gray-500": item.status === "pending",

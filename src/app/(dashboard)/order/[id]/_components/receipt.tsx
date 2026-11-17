@@ -17,7 +17,13 @@ const Receipt = ({
     created_at: string;
   };
   orderMenu:
-    | { menus: Menu; quantity: number; status: string; id: string }[]
+    | {
+        menus: Menu;
+        quantity: number;
+        status: string;
+        id: string;
+        nominal: number;
+      }[]
     | null
     | undefined;
   orderId: string;
@@ -45,7 +51,8 @@ const Receipt = ({
             Table:{" "}
             {
               <span className="font-bold">
-                {(order?.tables as unknown as { name: string })?.name}
+                {(order?.tables as unknown as { name: string })?.name ||
+                  "Takeaway"}
               </span>
             }
           </p>
@@ -63,11 +70,33 @@ const Receipt = ({
         </div>
         <div className="flex flex-col gap-2 py-4 border-b border-dashed text-sm">
           {orderMenu?.map((item) => (
-            <div key={item.id} className="flex justify-between items-center">
-              <p>
-                {item.menus.name} x {item.quantity}
-              </p>
-              <p>{convertIDR(item.menus.price * item.quantity)}</p>
+            <div key={item.id}>
+              {item.menus.discount > 0 ? (
+                <div>
+                  <div className="flex justify-between items-center">
+                    <p>
+                      {item.menus.name} x {item.quantity}
+                    </p>
+                    <p>{convertIDR(item.menus.price)}</p>
+                  </div>
+                  <div className="flex justify-between items-center text-muted-foreground">
+                    <p>*Disc {item.menus.discount}%</p>
+                    <p>
+                      -
+                      {convertIDR(
+                        (item.menus.price * item.menus.discount) / 100,
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <p>
+                    {item.menus.name} x {item.quantity}
+                  </p>
+                  <p>{convertIDR(item.nominal)}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -77,14 +106,14 @@ const Receipt = ({
             <p>{convertIDR(totalPrice)}</p>
           </div>
           <div className="flex justify-between items-center">
-            <p>Tax</p>
+            <p>Tax (12%)</p>
             <p>{convertIDR(tax)}</p>
           </div>
           <div className="flex justify-between items-center">
-            <p>Service</p>
+            <p>Service (5%)</p>
             <p>{convertIDR(service)}</p>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center font-bold">
             <p>Total</p>
             <p>{convertIDR(grandTotal)}</p>
           </div>
