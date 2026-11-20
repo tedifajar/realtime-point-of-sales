@@ -180,7 +180,6 @@ export default function OrderManagement() {
 
     if (reservedState?.status === "success") {
       toast.success("Update Reservation Success");
-      refetchOrders();
     }
   }, [reservedState]);
 
@@ -262,7 +261,7 @@ export default function OrderManagement() {
   return (
     <div className="w-full">
       <Tabs defaultValue="list">
-        <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+        <div className="flex flex-row mb-4 gap-2 justify-between w-full">
           <h1 className="text-2xl font-bold">Order Management</h1>
           <TabsList>
             <TabsTrigger value="list">Order List</TabsTrigger>
@@ -327,7 +326,17 @@ export default function OrderManagement() {
         </TabsContent>
 
         <TabsContent value="map">
-          <TableMap tables={tables || []} activeOrders={activeOrders || []} />
+          <TableMap
+            tables={tables || []}
+            activeOrders={activeOrders || []}
+            handleReservation={(
+              id: string,
+              table_id: string,
+              status: string,
+            ) => {
+              handleReservation({ id, table_id, status });
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
